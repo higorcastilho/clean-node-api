@@ -61,5 +61,5 @@ class AddAccountRepository {
 }
 
 //The increase of number of lines can lead us to think that we're overengineering our project. However, it's respecting 
-//one of the principles of clean architecture, that is respect SOLID, and the first character of this mnemonic "S", 
-//stands for "Single Responsibility Principle", what basically means broke our code, delegating small responsibilities to this pieces
+//one of the principles of clean architecture that is respect SOLID. The first character of this mnemonic "S" 
+//stands for "Single Responsibility Principle", what basically means broke our code delegating small responsibilities to this pieces
