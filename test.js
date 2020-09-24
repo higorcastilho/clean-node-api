@@ -1,7 +1,0 @@
-function name() {
-	return ;
-}
-
-
-
-name();
