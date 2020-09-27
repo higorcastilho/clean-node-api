@@ -13,7 +13,10 @@ const makeSut = () => {
 	}
 	//Making a Dependece Injection
 	const authUseCase = new AuthUseCase()
-	return new LoginRouter(authUseCase)
+	const sut = new LoginRouter(authUseCase)
+	return {
+		
+	}
 }
 
 describe('Login Router', () => {
@@ -65,7 +68,6 @@ describe('Login Router', () => {
 			}
 		}
 		sut.route(httpRequest)
-		expect(authUseCase.email).toBe(httpRequest.body.email)	
-			
+		expect(authUseCase.email).toBe(httpRequest.body.email)
 	})
 })
