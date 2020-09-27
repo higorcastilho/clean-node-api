@@ -6,22 +6,24 @@ const MissingParamError = require('../helpers/missing-param-error')
 //all the snippets who call that instance of the class when changing
 //this instance
 const makeSut = () => {
-	class AuthUseCase {
-		auth () {
-
+	class AuthUseCaseSpy {
+		auth (email, password) {
+			this.email = email
+			this.password = password
 		}
 	}
 	//Making a Dependece Injection
-	const authUseCase = new AuthUseCase()
-	const sut = new LoginRouter(authUseCase)
+	const authUseCaseSpy = new AuthUseCaseSpy()
+	const sut = new LoginRouter(authUseCaseSpy)
 	return {
-		
+		sut, 
+		authUseCaseSpy	
 	}
 }
 
 describe('Login Router', () => {
 	test('Should return 400 if no email is provided', () => {
-		const sut = makeSut()
+		const { sut } = makeSut()
 		const httpRequest = {
 			body: {
 				password: 'any_password'
@@ -33,7 +35,7 @@ describe('Login Router', () => {
 	})
 
 	test('Should return 400 if no password is provided', () => {
-		const sut = makeSut()
+		const { sut } = makeSut()
 		const httpRequest = {
 			body: {
 				email: 'any_email@email.com'
@@ -45,14 +47,14 @@ describe('Login Router', () => {
 	})
 
 	test('Should return 500 if no httpRequest is provided', () => {
-		const sut = makeSut()
+		const { sut } = makeSut()
 		const httpResponse = sut.route()
 		expect(httpResponse.statusCode).toBe(500)	
 			
 	})
 
 	test('Should return 500 if httpRequest has no body', () => {
-		const sut = makeSut()
+		const { sut } = makeSut()
 		const httpRequest = {}
 		const httpResponse = sut.route(httpRequest)
 		expect(httpResponse.statusCode).toBe(500)	
@@ -60,7 +62,7 @@ describe('Login Router', () => {
 	})
 
 	test('Should call AuthUseCase with correct params', () => {
-		const sut = makeSut()
+		const { sut, authUseCaseSpy } = makeSut()
 		const httpRequest = {
 			body: {
 				email: "any_email@mail.com",
@@ -68,6 +70,7 @@ describe('Login Router', () => {
 			}
 		}
 		sut.route(httpRequest)
-		expect(authUseCase.email).toBe(httpRequest.body.email)
+		expect(authUseCaseSpy.email).toBe(httpRequest.body.email)
+		expect(authUseCaseSpy.password).toBe(httpRequest.body.password)
 	})
 })
