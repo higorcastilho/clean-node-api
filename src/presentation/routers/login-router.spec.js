@@ -2,26 +2,41 @@
 const LoginRouter = require('./login-router')
 const MissingParamError = require('../helpers/missing-param-error')
 const UnauthorizedError = require('../helpers/unauthorized-error')
+const InternalServerError = require('../helpers/internal-server-error')
 
 //introduce the Factory Design Pattern. Basically avoid us to broke
 //all the snippets who call that instance of the class when changing
 //this instance
 const makeSut = () => {
-	class AuthUseCaseSpy {
-		auth (email, password) {
-			this.email = email
-			this.password = password
-			return this.accessToken
-		}
-	}
 	//Making a Dependece Injection
-	const authUseCaseSpy = new AuthUseCaseSpy()
+	const authUseCaseSpy = makeAuthUseCase()
 	authUseCaseSpy.accessToken = 'valid_token'
 	const sut = new LoginRouter(authUseCaseSpy)
 	return {
 		sut, 
 		authUseCaseSpy	
 	}
+}
+
+const makeAuthUseCase = () => {
+	class AuthUseCaseSpy {
+		auth (email, password) {
+			this.email = email
+			this.password = password
+			return this.accessToken
+		}	
+	}
+	return new AuthUseCaseSpy()
+}
+
+const makeAuthUseCaseWithError = () => {
+	class AuthUseCaseSpy {
+		auth() {
+			throw new Error()
+		}
+	}
+
+	return new AuthUseCaseSpy()
 }
 
 describe('Login Router', () => {
@@ -53,6 +68,7 @@ describe('Login Router', () => {
 		const { sut } = makeSut()
 		const httpResponse = sut.route()
 		expect(httpResponse.statusCode).toBe(500)	
+		expect(httpResponse.body).toEqual(new InternalServerError())	
 			
 	})
 
@@ -60,7 +76,8 @@ describe('Login Router', () => {
 		const { sut } = makeSut()
 		const httpRequest = {}
 		const httpResponse = sut.route(httpRequest)
-		expect(httpResponse.statusCode).toBe(500)	
+		expect(httpResponse.statusCode).toBe(500)
+		expect(httpResponse.body).toEqual(new InternalServerError())	
 			
 	})
 
@@ -114,10 +131,25 @@ describe('Login Router', () => {
 		}
 		const httpResponse = sut.route(httpRequest)
 		expect(httpResponse.statusCode).toBe(500)
+		expect(httpResponse.body).toEqual(new InternalServerError())
 	})
 
 	test('Should return 500 if AuthUseCase has no auth medthod', () => {
 		const sut = new LoginRouter({})
+		const httpRequest = {
+			body: {
+				email: "any_email@mail.com",
+				password: "any_password"
+			}
+		}
+		const httpResponse = sut.route(httpRequest)
+		expect(httpResponse.statusCode).toBe(500)
+		expect(httpResponse.body).toEqual(new InternalServerError())
+	})
+
+	test('Should return 500 if AuthUseCase throws', () => {
+		const authUseCaseSpy = makeAuthUseCaseWithError()
+		const sut = new LoginRouter(authUseCaseSpy)
 		const httpRequest = {
 			body: {
 				email: "any_email@mail.com",
